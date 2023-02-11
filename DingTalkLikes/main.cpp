@@ -176,12 +176,7 @@ int main() {
         }
         else {
             int address = (*__ResultArray.begin()) + 38;
-            void* p_address;
-            _asm {
-                mov eax, address
-                mov p_address, eax
-            }
-            ReadProcessMemory(hDing, p_address, uuid, 36, 0);
+            ReadProcessMemory(hDing, (void*)address, uuid, 36, 0);
         }
     }
     else {
