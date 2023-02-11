@@ -2,17 +2,18 @@
 #include <d3d9.h>
 #include <vector>
 #include <TlHelp32.h>
-#include <stdio.h>
-#include <iostream>
-#include <string>
+#include <WinInet.h>
+
 #include "imgui\imgui.h"
 #include "imgui\imgui_impl_dx9.h"
 #include "imgui\imgui_impl_win32.h"
-#include <WinInet.h>
-#pragma comment(lib,"ws2_32.lib")
+
 #pragma comment(lib, "wininet.lib")
 
+#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup")
+
 using namespace std;
+
 static LPDIRECT3D9 g_pD3D = NULL;
 static LPDIRECT3DDEVICE9 g_pd3dDevice = NULL;
 static D3DPRESENT_PARAMETERS g_d3dpp = {};
@@ -161,10 +162,33 @@ void runAgain() {
     exit(0);
 }
 
-int GUI() {
-    cout << endl << "没有错误"<<endl<<"正常情况下你是看不到这个dos窗口的，因为此窗口会在没有错误的情况下自动关闭"<<endl<<"如果你看到了请手动关闭xd" << endl<<endl;
-    FreeConsole();
-    PostMessage(GetConsoleWindow(), WM_CLOSE, 0, 0);
+int main() {
+
+    DWORD PID;
+    GetWindowThreadProcessId(FindWindow("StandardFrame", "钉钉"), &PID);
+    HANDLE hDing = OpenProcess(PROCESS_ALL_ACCESS, 0, PID);
+    if (hDing) {
+        MemoryData = new BYTE[BLOCKMAXSIZE];
+        SearchMemory(hDing, (char*)"68 74 74 70 3A 2F 2F 64 74 6C 69 76 65 2D ?? ?? 2E 64 69 6E 67 74 61 6C 6B 2E 63 6F 6D 2F 6C 69 76 65 5F 68 70 2F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 2E 66 6C 76 3F 61 75 74 68 5F 6B 65 79 3D", 0x0CAAAAAA, 0x5FFFFFFF, 30, __ResultArray);
+        if (__ResultArray.size() == 0) {
+            MessageBox(0, "Grabber Failed", "错误", 0);
+            return 0;
+        }
+        else {
+            int address = (*__ResultArray.begin()) + 38;
+            void* p_address;
+            _asm {
+                mov eax, address
+                mov p_address, eax
+            }
+            ReadProcessMemory(hDing, p_address, uuid, 36, 0);
+        }
+    }
+    else {
+        MessageBox(0,"初始化失败，请先进入直播间再启动此程序", "错误", 0);
+        return 0;
+    }
+
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, "wtf", NULL };
     ::RegisterClassEx(&wc);
     HWND hwnd = ::CreateWindow(wc.lpszClassName, "钉钉刷赞器", WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, 100, 100, 520, 225, NULL, NULL, wc.hInstance, NULL);
@@ -178,11 +202,13 @@ int GUI() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = 0; 
+    io.LogFilename = 0;
     ImGui::StyleColorsDark();
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX9_Init(g_pd3dDevice);
 
-    ImFont* font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\SourceHanSansCN-Normal.ttf", 20.0f, 0, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    ImFont* font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 18.0f, 0, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -324,36 +350,4 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         return 0;
     }
     return ::DefWindowProc(hWnd, msg, wParam, lParam);
-}
-
-int main() {
-	SetConsoleTitle("Loader");
-
-	DWORD PID;
-	GetWindowThreadProcessId(FindWindow("StandardFrame", "钉钉"), &PID);
-	HANDLE Ding = OpenProcess(PROCESS_ALL_ACCESS, 0, PID);
-    cout << endl << "当你看到这条消息的时候说明此程序出现了一些错误，以下是详细信息" << endl;
-	if (Ding) {
-        MemoryData = new BYTE[BLOCKMAXSIZE];
-        SearchMemory(Ding, (char*)"68 74 74 70 3A 2F 2F 64 74 6C 69 76 65 2D ?? ?? 2E 64 69 6E 67 74 61 6C 6B 2E 63 6F 6D 2F 6C 69 76 65 5F 68 70 2F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 2E 66 6C 76 3F 61 75 74 68 5F 6B 65 79 3D", 0x0CAAAAAA, 0x5FFFFFFF, 30, __ResultArray);
-        if (__ResultArray.size() == 0) {
-            cout << endl<< "Grabber Failed" << endl << __ResultArray.size() << " Address Found" << endl << endl;
-            system("pause");
-        }
-        else {
-            int address = (*__ResultArray.begin()) + 38;
-            void* p_address;
-            _asm {
-                mov eax, address
-                mov p_address, eax
-            }
-            ReadProcessMemory(Ding, p_address, uuid, 36, 0);
-            GUI();
-        }
-	}
-	else {
-		cout << endl << "初始化失败，请先进入直播间再启动此程序"<<endl<<endl;
-        system("pause");
-	}
-	return 0;
 }
