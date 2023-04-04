@@ -154,11 +154,7 @@ void Thread() {
 void runAgain() {
     TCHAR szPath[MAX_PATH];
     GetModuleFileName(NULL, szPath, MAX_PATH);
-    STARTUPINFO StartInfo;
-    PROCESS_INFORMATION procStruct;
-    memset(&StartInfo, 0, sizeof(STARTUPINFO));
-    StartInfo.cb = sizeof(STARTUPINFO);
-    CreateProcess((LPCTSTR)szPath, 0, 0, 0, FALSE, NORMAL_PRIORITY_CLASS, 0, 0, &StartInfo, &procStruct);
+    WinExec(szPath,SW_SHOW);
     exit(0);
 }
 
@@ -170,6 +166,7 @@ int main() {
     if (hDing) {
         MemoryData = new BYTE[BLOCKMAXSIZE];
         SearchMemory(hDing, (char*)"68 74 74 70 3A 2F 2F 64 74 6C 69 76 65 2D ?? ?? 2E 64 69 6E 67 74 61 6C 6B 2E 63 6F 6D 2F 6C 69 76 65 5F 68 70 2F ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 2E 66 6C 76 3F 61 75 74 68 5F 6B 65 79 3D", 0x0CAAAAAA, 0x5FFFFFFF, 30, __ResultArray);
+        delete[] MemoryData;
         if (__ResultArray.size() == 0) {
             MessageBox(0, "Grabber Failed", "错误", 0);
             return 0;
@@ -247,21 +244,13 @@ int main() {
                 }
                 else {
                     if (!TerminateThread(hThread, 0)) {
-                        MessageBox(0,"线程结束失败",0,0);
                         exit(0);
                     }
                     title = (char*)u8"开刷！！！";
                 }
             }
-            if (ImGui::Button(u8"Github")) {
-                ShellExecute(0, "open", "https://github.com/methylbenzene/DingTalkAddLikes/", 0, 0, 1);
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(u8"BiliBili")) {
-                ShellExecute(0, "open", "https://space.bilibili.com/497557624/", 0, 0, 1);
-            }
 
-            ImGui::Text(u8"每次直播结束后请重启钉钉和此刷赞器，不然会有一些奇怪的bug");
+            ImGui::Text(u8"每次直播结束后请重启钉钉和此刷赞器");
             ImGui::SameLine();
             if (ImGui::Button(u8"重启刷赞器")) {
                 runAgain();
